@@ -1,5 +1,7 @@
 //set up scene
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa0d0ff); // bg
+
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -9,44 +11,90 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-console.log("Hello World!");
-
-const width = 200;
-const height = 200;
-const segments = 199;
-const maxHeight = 10;
-
-// Geometry and Material
-const geometry = new THREE.PlaneGeometry(width, height, segments, segments);
-geometry.rotateX(-Math.PI / 2);
-const material = new THREE.MeshStandardMaterial({
-  color: 0x556b2f,
-  wireframe: false,
-  flatShading: true,
-});
-const terrain = new THREE.Mesh(geometry, material);
-scene.add(terrain);
 
 // Lighting
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(100, 100, 100).normalize();
-scene.add(light);
-const ambientLight = new THREE.AmbientLight(0x404040);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(100, 100, 100).normalize();
+scene.add(directionalLight);
+
+const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
 scene.add(ambientLight);
 
-// Noise
-const simplex = new SimplexNoise();
-const vertices = geometry.attributes.position.array;
-for (let i = 0; i < vertices.length; i += 3) {
-  const x = vertices[i];
-  const z = vertices[i + 2];
-  const y = simplex.noise2D(x / 50, z / 50) * maxHeight;
-  vertices[i + 1] = y;
+let terrainParams = {
+  width: 200,
+  height: 200,
+  segments: 199,
+  noiseScale: 50,
+  noiseAmplitude: 25,
+};
+
+let terrain;
+
+// Function to generate terrain
+function generateTerrain() {
+  if (terrain) {
+    // rem if exxist
+    scene.remove(terrain);
+    terrain.geometry.dispose();
+    terrain.material.dispose();
+    terrain = undefined;
+  }
+
+  // Geometry and Material
+  const geometry = new THREE.PlaneGeometry(
+    terrainParams.width,
+    terrainParams.height,
+    terrainParams.segments,
+    terrainParams.segments
+  );
+  geometry.rotateX(-Math.PI / 2);
+
+  const colors = [];
+
+  // Noise
+  const simplex = new SimplexNoise();
+
+  const position = geometry.attributes.position;
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const z = position.getZ(i);
+    const y =
+      simplex.noise2D(
+        x / terrainParams.noiseScale,
+        z / terrainParams.noiseScale
+      ) * terrainParams.noiseAmplitude;
+    position.setY(i, y);
+
+    //  color based on height
+    const color = new THREE.Color();
+    if (y < terrainParams.noiseAmplitude * 0.3) {
+      color.setHex(0x228b22); // ForestGreen
+    } else if (y < terrainParams.noiseAmplitude * 0.6) {
+      color.setHex(0x8b4513); // SaddleBrown
+    } else {
+      color.setHex(0xffffff); // White (snow)
+    }
+    colors.push(color.r, color.g, color.b);
+  }
+
+  //  color
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    flatShading: true,
+  });
+
+  terrain = new THREE.Mesh(geometry, material);
+  scene.add(terrain);
 }
-geometry.computeVertexNormals();
+
+generateTerrain();
 
 // Camera Position
-camera.position.set(0, 20, 50);
+camera.position.set(0, 50, 100);
 camera.lookAt(0, 0, 0);
 
 // Render Loop
@@ -56,7 +104,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
-
 
 //handle resizes
 window.addEventListener("resize", () => {
