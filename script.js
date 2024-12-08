@@ -111,3 +111,12 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+const gui = new dat.GUI();
+
+gui.add(terrainParams, "width", 50, 300).step(1);
+gui.add(terrainParams, "height", 50, 300).step(1);
+gui.add(terrainParams, "segments", 10, 500).step(1);
+gui.add(terrainParams, "noiseScale", 10, 100).step(1);
+gui.add(terrainParams, "noiseAmplitude", 5, 50).step(1);
+gui.add({ regenerate: generateTerrain }, "regenerate");
