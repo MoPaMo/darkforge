@@ -11,7 +11,7 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
+console.log("added it!")
 // Lighting
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(100, 100, 100).normalize();
