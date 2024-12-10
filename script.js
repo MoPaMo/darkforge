@@ -11,7 +11,7 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-console.log("added it!")
+console.log("added it!");
 // Lighting
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(100, 100, 100).normalize();
@@ -30,17 +30,20 @@ let terrainParams = {
 
 let terrain;
 
-// Function to generate terrain
 function generateTerrain() {
   if (terrain) {
-    // rem if exxist
     scene.remove(terrain);
     terrain.geometry.dispose();
     terrain.material.dispose();
     terrain = undefined;
+
+    scene.traverse((child) => {
+      if (child.isMesh && child.geometry.type === "TextGeometry") {
+        scene.remove(child);
+      }
+    });
   }
 
-  // Geometry and Material
   const geometry = new THREE.PlaneGeometry(
     terrainParams.width,
     terrainParams.height,
@@ -50,36 +53,56 @@ function generateTerrain() {
   geometry.rotateX(-Math.PI / 2);
 
   const colors = [];
-
-  // Noise
   const simplex = new SimplexNoise();
 
   const position = geometry.attributes.position;
+
+  const riverNoise = new SimplexNoise("river");
+
   for (let i = 0; i < position.count; i++) {
     const x = position.getX(i);
     const z = position.getZ(i);
-    const y =
+    let y =
       simplex.noise2D(
         x / terrainParams.noiseScale,
         z / terrainParams.noiseScale
       ) * terrainParams.noiseAmplitude;
+
+    // rivers in lower terrain
+    const riverStrength = riverNoise.noise2D(
+      x / terrainParams.noiseScale,
+      z / terrainParams.noiseScale
+    );
+    if (riverStrength > 0.5) {
+      y -= 10;
+    }
+
     position.setY(i, y);
 
-    //  color based on height
     const color = new THREE.Color();
-    if (y < terrainParams.noiseAmplitude * 0.3) {
-      color.setHex(0x228b22); // ForestGreen
-    } else if (y < terrainParams.noiseAmplitude * 0.6) {
-      color.setHex(0x8b4513); // SaddleBrown
+    if (y < terrainParams.noiseAmplitude * 0.2) {
+      color.setHex(0x228b22);
+    } else if (y < terrainParams.noiseAmplitude * 0.4) {
+      color.setHex(0x8b4513);
+    } else if (y < terrainParams.noiseAmplitude * 0.5) {
+      color.setHex(0xd2b48c);
+    } else if (y < terrainParams.noiseAmplitude * 0.7) {
+      color.setHex(0xdeb887);
+    } else if (y < terrainParams.noiseAmplitude * 0.9) {
+      color.setHex(0x808080);
     } else {
-      color.setHex(0xffffff); // White (snow)
+      color.setHex(0xffffff);
     }
+
+    //  rivers = blue
+    if (riverStrength > 0.5) {
+      color.setHex(0x0000ff);
+    }
+
     colors.push(color.r, color.g, color.b);
   }
 
-  //  color
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-
   geometry.computeVertexNormals();
 
   const material = new THREE.MeshStandardMaterial({
@@ -89,9 +112,51 @@ function generateTerrain() {
 
   terrain = new THREE.Mesh(geometry, material);
   scene.add(terrain);
-}
 
-generateTerrain();
+  // Load font
+  const loader = new THREE.FontLoader();
+  loader.load(
+    "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
+    function (font) {
+      const biomes = [
+        {
+          name: "Forest",
+          position: { x: 0, y: terrainParams.noiseAmplitude * 0.2, z: 0 },
+        },
+        { 
+          name: "Desert",
+          position: { x: 50, y: terrainParams.noiseAmplitude * 0.5, z: 50 },
+        },
+        {
+          name: "Mountain",
+          position: { x: -50, y: terrainParams.noiseAmplitude * 0.8, z: -50 },
+        },
+        {
+          name: "River",
+          position: { x: 0, y: terrainParams.noiseAmplitude * -0.5, z: 0 },
+        },
+      ];
+
+      biomes.forEach((biome) => {
+        const textGeometry = new THREE.TextGeometry(biome.name, {
+          font: font,
+          size: 5,
+          height: 1,
+          curveSegments: 12,
+          bevelEnabled: false,
+        });
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.set(
+          biome.position.x,
+          biome.position.y,
+          biome.position.z
+        );
+        scene.add(textMesh);
+      });
+    }
+  );
+}
 
 // Camera Position
 camera.position.set(0, 50, 100);
