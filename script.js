@@ -1,4 +1,4 @@
-//set up scene
+// set up scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xa0d0ff); // bg
 
@@ -68,7 +68,6 @@ function generateTerrain() {
         z / terrainParams.noiseScale
       ) * terrainParams.noiseAmplitude;
 
-    // rivers in lower terrain
     const riverStrength = riverNoise.noise2D(
       x / terrainParams.noiseScale,
       z / terrainParams.noiseScale
@@ -94,7 +93,6 @@ function generateTerrain() {
       color.setHex(0xffffff);
     }
 
-    //  rivers = blue
     if (riverStrength > 0.5) {
       color.setHex(0x0000ff);
     }
@@ -113,7 +111,6 @@ function generateTerrain() {
   terrain = new THREE.Mesh(geometry, material);
   scene.add(terrain);
 
-  // Load font
   const loader = new THREE.FontLoader();
   loader.load(
     "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
@@ -158,19 +155,20 @@ function generateTerrain() {
   );
 }
 
-// Camera Position
 camera.position.set(0, 50, 100);
 camera.lookAt(0, 0, 0);
 
-// Render Loop
+generateTerrain();
+
 function animate() {
   requestAnimationFrame(animate);
-  terrain.rotation.y += 0.001;
+  if (terrain) {
+    terrain.rotation.y += 0.001;
+  }
   renderer.render(scene, camera);
 }
 animate();
 
-//handle resizes
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
