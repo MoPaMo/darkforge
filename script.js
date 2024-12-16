@@ -49,6 +49,13 @@ function generatePalette(count) {
   return palette;
 }
 
+function shufflePalette() {
+  for (let i = palette.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [palette[i], palette[j]] = [palette[j], palette[i]];
+  }
+}
+
 // generate map with borders
 function generateMapWithBorders() {
   const canvas = document.createElement("canvas");
@@ -151,6 +158,7 @@ canvas.addEventListener("mousemove", (event) => {
   }
 
   if (shouldRegenerate) {
+    shufflePalette();
     regenerateMap();
   }
 });
@@ -158,6 +166,7 @@ canvas.addEventListener("mousemove", (event) => {
 canvas.addEventListener("click", () => {
   config.seed = Math.random();
   simplex = new SimplexNoise(config.seed);
+  shufflePalette();
   regenerateMap();
 });
 
