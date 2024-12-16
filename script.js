@@ -25,7 +25,7 @@ camera.position.z = 10;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(width, height);
-document.body.appendChild(renderer.domElement);
+document.getElementById("canvas-container").appendChild(renderer.domElement);
 
 window.addEventListener("resize", () => {
   const width = window.innerWidth;
@@ -109,7 +109,6 @@ function generateMapWithBorders() {
       data[index + 3] = 255; // Alpha
     }
   }
-
   ctx.putImageData(imageData, 0, 0);
   return new THREE.CanvasTexture(canvas);
 }
@@ -121,33 +120,20 @@ const material = new THREE.MeshBasicMaterial({ map: mapTexture });
 const mapMesh = new THREE.Mesh(geometry, material);
 scene.add(mapMesh);
 
-// GUI
-const gui = new dat.GUI({ autoPlace: false });
-document.getElementById("gui-container").appendChild(gui.domElement);
+document.getElementById("regionScale").addEventListener("input", (event) => {
+  config.regionScale = parseFloat(event.target.value);
+});
 
-const parameters = {
-  regionScale: config.regionScale,
-  regionCount: config.regionCount,
-  regenerate: () => regenerateMap(),
-};
+document.getElementById("regionCount").addEventListener("input", (event) => {
+  config.regionCount = parseInt(event.target.value, 10);
+});
 
-gui
-  .add(parameters, "regionScale", 0.001, 0.02)
-  .name("Scale")
-  .onChange(() => {
-    config.regionScale = parameters.regionScale;
-  });
-gui
-  .add(parameters, "regionCount", 2, 10, 1)
-  .name("Regions")
-  .onChange(() => {
-    config.regionCount = parameters.regionCount;
-  });
-gui.add(parameters, "regenerate").name("Regenerate Map");
+document.getElementById("regenerateButton").addEventListener("click", () => {
+  regenerateMap();
+});
 
-// regen params change
 function regenerateMap() {
-  simplex = new SimplexNoise(Math.random);
+  simplex = new SimplexNoise(Math.random());
   mapTexture = generateMapWithBorders();
   material.map = mapTexture;
   material.needsUpdate = true;
