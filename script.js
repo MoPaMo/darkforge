@@ -115,7 +115,6 @@ const mapMesh = new THREE.Mesh(geometry, material);
 scene.add(mapMesh);
 
 function regenerateMap() {
-  simplex = new SimplexNoise(Math.random());
   mapTexture = generateMapWithBorders();
   material.map = mapTexture;
   material.needsUpdate = true;
@@ -154,6 +153,12 @@ canvas.addEventListener("mousemove", (event) => {
   if (shouldRegenerate) {
     regenerateMap();
   }
+});
+
+canvas.addEventListener("click", () => {
+  config.seed = Math.random();
+  simplex = new SimplexNoise(config.seed);
+  regenerateMap();
 });
 
 function animate() {
