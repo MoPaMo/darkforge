@@ -38,7 +38,7 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
 });
 
-// generate  color palette
+// generate color palette
 function generatePalette(count) {
   const palette = [];
   for (let i = 0; i < count; i++) {
@@ -57,7 +57,6 @@ function generateMapWithBorders() {
   const ctx = canvas.getContext("2d");
   const imageData = ctx.createImageData(config.mapWidth, config.mapHeight);
   const data = imageData.data;
-
   // Gen noise
   const noiseValues = [];
   for (let y = 0; y < config.mapHeight; y++) {
@@ -71,15 +70,12 @@ function generateMapWithBorders() {
       noiseValues[y][x] = region;
     }
   }
-
-  //palette of colors for regions
+  // palette of colors for regions
   const palette = generatePalette(config.regionCount);
-
   for (let y = 0; y < config.mapHeight; y++) {
     for (let x = 0; x < config.mapWidth; x++) {
       const currentRegion = noiseValues[y][x];
       let isBorder = false;
-
       // 4 neighbors
       const neighbors = [
         y > 0 ? noiseValues[y - 1][x] : currentRegion,
@@ -87,14 +83,12 @@ function generateMapWithBorders() {
         x > 0 ? noiseValues[y][x - 1] : currentRegion,
         x < config.mapWidth - 1 ? noiseValues[y][x + 1] : currentRegion,
       ];
-
       for (let neighbor of neighbors) {
         if (neighbor !== currentRegion) {
           isBorder = true;
           break;
         }
       }
-
       const index = (x + y * config.mapWidth) * 4;
       if (isBorder) {
         data[index] = 0;
@@ -120,24 +114,47 @@ const material = new THREE.MeshBasicMaterial({ map: mapTexture });
 const mapMesh = new THREE.Mesh(geometry, material);
 scene.add(mapMesh);
 
-document.getElementById("regionScale").addEventListener("input", (event) => {
-  config.regionScale = parseFloat(event.target.value);
-});
-
-document.getElementById("regionCount").addEventListener("input", (event) => {
-  config.regionCount = parseInt(event.target.value, 10);
-});
-
-document.getElementById("regenerateButton").addEventListener("click", () => {
-  regenerateMap();
-});
-
 function regenerateMap() {
   simplex = new SimplexNoise(Math.random());
   mapTexture = generateMapWithBorders();
   material.map = mapTexture;
   material.needsUpdate = true;
 }
+
+const canvas = renderer.domElement;
+
+canvas.addEventListener("mousemove", (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  const width = rect.width;
+  const height = rect.height;
+
+  // cursor X -> regionScale (0.001- 0.02)
+  const newRegionScale = 0.001 + (x / width) * (0.02 - 0.001);
+
+  // cursor height -> regionCount (2-10)
+  const newRegionCount = Math.max(
+    2,
+    Math.min(10, Math.floor((y / height) * 10))
+  );
+
+  let shouldRegenerate = false;
+
+  if (config.regionScale !== newRegionScale) {
+    config.regionScale = newRegionScale;
+    shouldRegenerate = true;
+  }
+
+  if (config.regionCount !== newRegionCount) {
+    config.regionCount = newRegionCount;
+    shouldRegenerate = true;
+  }
+
+  if (shouldRegenerate) {
+    regenerateMap();
+  }
+});
 
 function animate() {
   requestAnimationFrame(animate);
