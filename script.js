@@ -6,6 +6,8 @@ const config = {
   seed: Math.random(),
 };
 
+let palette = generatePalette(config.regionCount);
+
 let simplex = new SimplexNoise(config.seed);
 
 // initialize Scene
@@ -50,10 +52,12 @@ function generatePalette(count) {
 }
 
 function shufflePalette() {
+  console.log("shufflePalette", palette);
   for (let i = palette.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [palette[i], palette[j]] = [palette[j], palette[i]];
   }
+  console.log("shufflePalette", palette);
 }
 
 // generate map with borders
@@ -158,7 +162,6 @@ canvas.addEventListener("mousemove", (event) => {
   }
 
   if (shouldRegenerate) {
-    shufflePalette();
     regenerateMap();
   }
 });
