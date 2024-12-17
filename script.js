@@ -179,15 +179,13 @@ function animate() {
 }
 animate();
 
-
-
-canvas
-  .addEventListener("contextmenu", function (e) {
-    e.preventDefault();
-    const canvas = document.querySelector("canvas");
-    const image = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = image;
-    link.download = "downloaded-image.png";
-    link.click();
-  });
+canvas.addEventListener("contextmenu", function (e) {
+  e.preventDefault();
+  renderer.render(scene, camera);
+  const canvasElement = document.querySelector("canvas");
+  const image = canvasElement.toDataURL("image/png");
+  const link = document.createElement("a");
+  link.href = image;
+  link.download = "downloaded-image.png";
+  link.click();
+});
