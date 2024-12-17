@@ -15,15 +15,16 @@ const scene = new THREE.Scene();
 
 const width = window.innerWidth;
 const height = window.innerHeight;
+const aspect = width / height;
 const camera = new THREE.OrthographicCamera(
-  width / -2,
-  width / 2,
-  height / 2,
-  height / -2,
+  (width / -2) * .5,
+  (width / 2) * .5,
+  (height / 2) * .5,
+  (height / -2) * .5,
   1,
   1000
 );
-camera.position.z = 10;
+camera.position.z = 100;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(width, height);
@@ -33,10 +34,10 @@ window.addEventListener("resize", () => {
   const width = window.innerWidth;
   const height = window.innerHeight;
   renderer.setSize(width, height);
-  camera.left = width / -2;
-  camera.right = width / 2;
-  camera.top = height / 2;
-  camera.bottom = height / -2;
+  camera.left = (width / -2) * 1.5;
+  camera.right = (width / 2) * 1.5;
+  camera.top = (height / 2) * 1.5;
+  camera.bottom = (height / -2) * 1.5;
   camera.updateProjectionMatrix();
 });
 
