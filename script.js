@@ -34,10 +34,10 @@ window.addEventListener("resize", () => {
   const width = window.innerWidth;
   const height = window.innerHeight;
   renderer.setSize(width, height);
-  camera.left = (width / -2) * 1.5;
-  camera.right = (width / 2) * 1.5;
-  camera.top = (height / 2) * 1.5;
-  camera.bottom = (height / -2) * 1.5;
+  camera.left = (width / -2) * .5;
+  camera.right = (width / 2) * .5;
+  camera.top = (height / 2) * .5;
+  camera.bottom = (height / -2) * .5;
   camera.updateProjectionMatrix();
 });
 
