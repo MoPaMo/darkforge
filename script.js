@@ -178,3 +178,16 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+
+
+canvas
+  .addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    const canvas = document.querySelector("canvas");
+    const image = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = image;
+    link.download = "downloaded-image.png";
+    link.click();
+  });
